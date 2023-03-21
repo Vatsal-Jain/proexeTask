@@ -5,8 +5,10 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import auth from '@react-native-firebase/auth';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import Icon from 'react-native-vector-icons/AntDesign';
 
 const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
@@ -21,32 +23,53 @@ const LoginScreen = ({navigation}) => {
       alert('enter atleast 8 digit password');
       return;
     }
-    
+
     auth()
-    .signInWithEmailAndPassword(email, password)
-    .then(() => {
-      console.log('User signed in!')
-    })
-    .catch(error => {
-      if (error.code === 'auth/email-already-in-use') {
-        console.log('That email address is already in use!');
-      }
-  
-      if (error.code === 'auth/invalid-email') {
-        console.log('That email address is invalid!');
-      }
+      .signInWithEmailAndPassword(email, password)
+      .then(() => {
+        console.log('User signed in!');
+      })
+      .catch(error => {
+        if (error.code === 'auth/email-already-in-use') {
+          console.log('That email address is already in use!');
+        }
 
-      if (error.code === 'auth/user-not-found') {
-        alert('There is no account associated with this mail address,Please create an account');
-      }
-      if (error.code === 'auth/wrong-password') {
-        alert('wrong password, please enter correct password');
-      }
-  
-    
-    });
+        if (error.code === 'auth/invalid-email') {
+          console.log('That email address is invalid!');
+        }
 
+        if (error.code === 'auth/user-not-found') {
+          alert(
+            'There is no account associated with this mail address,Please create an account',
+          );
+        }
+        if (error.code === 'auth/wrong-password') {
+          alert('wrong password, please enter correct password');
+        }
+      });
   };
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId:
+        '20144348945-vb9emu8s1c3cs2obdgct78v352ntv6il.apps.googleusercontent.com',
+    });
+  }, []);
+
+  async function onGoogleButtonPress() {
+    // Check if your device supports Google Play
+    await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
+    // logout from previous google login
+    await GoogleSignin.signOut();
+    // Get the users ID token
+    const {idToken} = await GoogleSignin.signIn();
+
+    // Create a Google credential with the token
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+    // Sign-in the user with the credential
+    return auth().signInWithCredential(googleCredential);
+  }
   return (
     <View style={styles.container}>
       <TextInput
@@ -64,16 +87,29 @@ const LoginScreen = ({navigation}) => {
         onChangeText={text => setPassword(text)}
         secureTextEntry={true}
       />
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}
-      disabled={email && password ? false : true}
-      >
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={handleLogin}
+        disabled={email && password ? false : true}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
-      <View style={styles.footerText}>
-      <Text style={styles.dont}>Dont Have an Account? </Text>
-      <TouchableOpacity onPress={() => navigation.navigate("signup")}>
-      <Text style={styles.bold}>Sign Up</Text>
+      <Text style={styles.or}>Or</Text>
+      <TouchableOpacity
+        onPress={() =>
+          onGoogleButtonPress().then(() =>
+            console.log('Signed in with Google!'),
+          )
+        }
+        style={styles.googleButton}>
+        <Text style={styles.buttonText}>Continue with Google</Text>
+        <Icon name="google" color="red" size={20} />
       </TouchableOpacity>
+      <View style={styles.footerText}>
+        <Text style={styles.dont}>Dont Have an Account? </Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate('signup')}>
+          <Text style={styles.bold}>Sign Up</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -86,11 +122,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#28304f',
     width: '50%',
     padding: 15,
-    marginTop: 30,
+    marginVertical: 10,
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  googleButton: {
+    backgroundColor: '#a3a5ab',
+    width: '70%',
+    padding: 15,
+    marginVertical: 10,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    flexDirection: 'row',
+  },
+
   buttonText: {
     color: '#fff',
     fontSize: 20,
@@ -113,16 +160,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  bold:{
-fontWeight:'bold',
-color:'#000'
+  bold: {
+    fontWeight: 'bold',
+    color: '#000',
   },
-  footerText:{
-marginTop:50,
-flexDirection:'row'
+  footerText: {
+    marginTop: 50,
+    flexDirection: 'row',
   },
-  dont:{
-    color:'grey'
-  }
-  
+  dont: {
+    color: 'grey',
+  },
 });
