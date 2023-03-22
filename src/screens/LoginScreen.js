@@ -93,7 +93,7 @@ const LoginScreen = ({navigation}) => {
         disabled={email && password ? false : true}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
-      <Text style={styles.or}>Or</Text>
+      <Text style={styles.or}>OR</Text>
       <TouchableOpacity
         onPress={() =>
           onGoogleButtonPress().then(() =>
@@ -137,6 +137,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     flexDirection: 'row',
   },
+  or:{
+color:'#000',
+fontSize:18
+  },
 
   buttonText: {
     color: '#fff',
@@ -163,12 +167,16 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: 'bold',
     color: '#000',
+    fontSize:16
   },
   footerText: {
     marginTop: 50,
     flexDirection: 'row',
+    bottom:30,
+    position:'absolute'
   },
   dont: {
     color: 'grey',
+    fontSize:16
   },
 });

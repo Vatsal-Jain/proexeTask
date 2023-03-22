@@ -68,6 +68,7 @@ catch{
           style={styles.input}
           placeholderTextColor="#66676e"
           value={password}
+          secureTextEntry={true}
           onChangeText={text => setPassword(text)}
         />
           <TextInput
@@ -75,11 +76,20 @@ catch{
           style={styles.input}
           placeholderTextColor="#66676e"
           value={confirmPassword}
+          secureTextEntry={true}
           onChangeText={text => setConfirmPassword(text)}
         />
         <TouchableOpacity style={styles.loginButton} onPress={handleSignup}>
           <Text style={styles.buttonText}>Create My Account</Text>
         </TouchableOpacity>
+
+        <View style={styles.footerText}>
+        <Text style={styles.dont}>Have an Account? </Text>
+
+        <TouchableOpacity onPress={() => navigation.navigate('login')}>
+          <Text style={styles.bold}>Login</Text>
+        </TouchableOpacity>
+      </View>
       </View>
     );
   };
@@ -115,5 +125,21 @@ catch{
       backgroundColor: '#fff',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    bold: {
+      fontWeight: 'bold',
+      color: '#000',
+      fontSize:16
+    },
+    footerText: {
+      marginTop: 50,
+      flexDirection: 'row',
+      bottom:30,
+      position:'absolute',
+  
+    },
+    dont: {
+      color: 'grey',
+      fontSize:16
     },
   });

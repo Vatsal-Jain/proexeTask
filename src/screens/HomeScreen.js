@@ -18,16 +18,34 @@ import {fetchData} from '../redux/slices/userSlice';
 const HomeScreen = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useDispatch();
-
+ const [loading,setLoading] = useState(false)
+  
   const fetchDataFromRedux = useSelector(state => state.usersList);
 
   const getData = () => {
-    fetch('https://reqres.in/api/users?page=2', {
+    if(fetchDataFromRedux.length < 12){
+    fetch("https://reqres.in/api/users?page=1", {
       method: 'GET',
     })
       .then(response => response.json())
-      .then(json => dispatch(fetchData(json.data)));
-  };
+      .then(json =>{
+      const resp = json.data;
+      resp.forEach((item) => {
+       
+        dispatch(fetchData(item))
+      })
+     
+    
+       //   dispatch(fetchData(json.data));
+          //setData(json.data)
+       
+     
+  
+ 
+})
+    }}
+
+
 
   useEffect(() => {
     getData();
@@ -41,6 +59,29 @@ const HomeScreen = () => {
       });
   };
 
+
+  const handleEndReached = () =>{
+    setLoading(true)
+    if(fetchDataFromRedux.length < 12){
+    fetch("https://reqres.in/api/users?page=2", {
+      method: 'GET',
+    })
+      .then(response => response.json())
+      .then(json =>{
+        const resp = json.data;
+        resp.forEach((item) => {
+          dispatch(fetchData(item))
+        })
+      })
+
+}else{
+  console.log("cannot perform pagination end of data")
+}
+setLoading(false)
+  }
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -52,40 +93,38 @@ const HomeScreen = () => {
 
         <Icon name="search" size={25} color={'#000'} />
       </View>
-      <ScrollView contentContainerStyle={{alignItems: 'center'}}>
+     
 
-        {fetchDataFromRedux[0] ? fetchDataFromRedux[0]
-          .filter(val => {
-            if (searchTerm === '') {
-              return val;
-            } else if (
-              val.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              val.last_name.toLowerCase().includes(searchTerm.toLowerCase()) 
-            ) 
-            
-            {
-              return val;
-            }
-          })
-          .map(item => {
-            return (
-              <View style={styles.listView} key={item.id}>
-                <View style={{flexDirection: 'column'}}>
-                  <Text style={styles.textName}>
-                    {item.first_name} {item.last_name} 
-                  </Text>
-                  <Text style={styles.emailName}>{item.email}</Text>
-                </View>
-                <Image
-                  source={{uri: item.avatar}}
-                  style={{width: 100, height: 100}}
-                />
-              </View>
-            );
-          }):
-          <ActivityIndicator size={'large'} color={'blue'}/>
-          }
-      </ScrollView>
+      <FlatList 
+      data={fetchDataFromRedux}
+      ItemSeparatorComponent={() => <View style={{marginBottom:10}}/>}
+      contentContainerStyle={{width:'90%',alignSelf:'center'}}
+      keyExtractor={(item) => item.id}
+      onEndReached={handleEndReached}
+
+      onEndReachedThreshold={1}
+      renderItem={({item}) => {
+        if(item.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              item.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ){
+                 return(
+          <View style={styles.listView} >
+          <View style={{flexDirection: 'column'}}>
+            <Text style={styles.textName}>
+              {item.first_name} {item.last_name} 
+            </Text>
+            <Text style={styles.emailName}>{item.email}</Text>
+          </View>
+          <Image
+            source={{uri: item.avatar}}
+            style={{width: 100, height: 100}}
+          />
+        </View>
+        )
+              }
+             
+      }}
+      />
+      {loading && <ActivityIndicator />} 
 
       <TouchableOpacity style={styles.loginButton} onPress={signOut}>
         <Text style={styles.buttonText}>Log out</Text>
@@ -115,15 +154,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  
   },
   listView: {
     backgroundColor: '#c1d9e3',
     padding: 10,
-    width: '90%',
+    width: '100%',
 
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+  
+    
   },
   searchContainer: {
     backgroundColor: '#ede7e6',
